@@ -221,7 +221,7 @@ footer.note{color:var(--muted);font-size:.76rem;text-align:center;margin-top:30p
   <button class="alarm" id="alarm" aria-live="assertive">
     <div class="alarm-in">
       <div class="siren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
-      <div><b id="alarmTitle">Stok kritikal</b><span id="alarmSub">Ketik untuk lihat senarai</span></div>
+      <div><b id="alarmTitle">Stok kritikal</b><span id="alarmSub">Tekan untuk lihat senarai</span></div>
     </div>
     <div class="ticker" id="alarmTicker"></div>
   </button>
@@ -423,7 +423,7 @@ async function load(){
   } catch(err){
     const box = $('#errBox');
     box.innerHTML = '<b>Data langsung tidak dapat dimuatkan.</b> ' + esc(err.message) +
-      (ITEMS.length ? ' Paparan menunjukkan data terakhir yang disimpan.' : ' Semak sambungan internet, kemudian ketik butang muat semula.');
+      (ITEMS.length ? ' Paparan menunjukkan data terakhir yang disimpan.' : ' Semak sambungan internet, kemudian tekan butang muat semula.');
     box.classList.add('show');
     if (!ITEMS.length) restoreCache();
   } finally { btn.classList.remove('spin'); }
@@ -447,7 +447,7 @@ function renderAlarm(){
   if (n > 0){
     a.classList.add('show'); $('#okBand').classList.remove('show');
     $('#alarmTitle').textContent = `${n} item stok kritikal`;
-    $('#alarmSub').textContent = `${out.length} habis stok · ${low.length} kurang stok — ketik untuk lihat`;
+    $('#alarmSub').textContent = `${out.length} habis stok · ${low.length} kurang stok — tekan untuk lihat`;
     $('#alarmTicker').textContent = [...out, ...low].map(i => `${i.name} (${fmt(i.bal ?? 0)} ${i.uom||''})`).join('   •   ');
     const d = $('#navDot'); d.textContent = n > 99 ? '99+' : n; d.classList.add('show');
     $('#tOut').classList.toggle('live', out.length > 0);

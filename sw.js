@@ -1,6 +1,6 @@
 // DXN DC Sendayan – Inventori Packing : Service Worker
 // Tukar nombor versi setiap kali index.html dikemas kini supaya telefon ambil versi baharu.
-const CACHE = 'dxn-inventori-v1';
+const CACHE = 'dxn-inventori-v2';
 const SHELL = ['./', './index.html', './manifest.json',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 
