@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1E38">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Inventori DXN">
+<title>Inventori Packing – DXN DC Sendayan</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   DXN DC SENDAYAN – INVENTORY CONTROL (Packing) 2026
+   Sumber data: Google Sheet "DXN PACKING INVENTORY 2026"
+   ========================================================== */
+:root{
+  --bg:#0E1E38; --bg2:#122644; --panel:#162D50; --panel2:#1B355D;
+  --line:#28466F; --text:#E8EEF7; --muted:#93A8C6; --accent:#5AA9FF;
+  --red:#FF4D5E; --red-deep:#B3132A; --amber:#F5B23E; --green:#34D399;
+  --radius-l:18px; --radius-s:10px;
+  --f-body:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-num:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;font-family:var(--f-body);color:var(--text);
+  background:radial-gradient(120% 60% at 50% -10%,#1C3A66 0%,var(--bg) 55%) fixed,var(--bg);
+  -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 104px}
+
+/* ---------- Header ---------- */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
+  background:rgba(14,30,56,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(40,70,111,.6)}
+.top-in{max-width:720px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.top img{width:40px;height:40px;border-radius:10px}
+.top h1{margin:0;font-family:var(--f-num);font-weight:700;font-size:1.3rem;letter-spacing:.01em;line-height:1.05}
+.top small{display:block;color:var(--muted);font-size:.78rem;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-in>div:nth-child(2){min-width:0}
+.top .sp{flex:1}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--panel);
+  display:grid;place-items:center;flex:none}
+.icon-btn svg{width:20px;height:20px}
+.icon-btn.on{background:var(--accent);border-color:var(--accent);color:#08203F}
+.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- Red blinking alert (memorable element) ---------- */
+.alarm{display:none;margin:14px 0 4px;border-radius:var(--radius-l);overflow:hidden;
+  border:2px solid var(--red);background:var(--red-deep);text-align:left;width:100%;padding:0}
+.alarm.show{display:block;animation:alarmPulse 1s steps(2,jump-none) infinite}
+.alarm-in{display:flex;align-items:center;gap:14px;padding:14px 16px}
+.alarm .siren{width:44px;height:44px;border-radius:50%;background:var(--red);flex:none;display:grid;place-items:center;
+  box-shadow:0 0 0 0 rgba(255,77,94,.7);animation:ring 1s ease-out infinite}
+.alarm .siren svg{width:24px;height:24px;color:#fff}
+.alarm b{display:block;font-family:var(--f-num);font-size:1.35rem;font-weight:700;line-height:1.1;color:#fff}
+.alarm span{font-size:.88rem;color:#FFD7DB}
+.alarm .ticker{background:rgba(0,0,0,.25);padding:8px 16px;font-size:.84rem;color:#FFE4E7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes alarmPulse{0%{background:var(--red-deep)}50%{background:#E0243B}100%{background:var(--red-deep)}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(255,255,255,.65)}100%{box-shadow:0 0 0 16px rgba(255,255,255,0)}}
+.ok-band{display:none;margin:14px 0 4px;padding:12px 16px;border-radius:var(--radius-l);
+  border:1px solid rgba(52,211,153,.45);background:rgba(52,211,153,.1);color:#BFF3DD;font-size:.92rem}
+.ok-band.show{display:block}
+
+/* ---------- Sections ---------- */
+.view{display:none}.view.active{display:block}
+h2{font-family:var(--f-num);font-weight:600;font-size:1.15rem;margin:26px 0 10px;color:var(--text)}
+h2 .count{color:var(--muted);font-weight:500}
+.meta{color:var(--muted);font-size:.82rem;margin:8px 0 0}
+
+/* Stats: one hero number + three supporting */
+.stats{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;margin-top:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-s);padding:12px 14px;text-align:left;width:100%}
+.stat .n{font-family:var(--f-num);font-weight:700;font-size:2rem;line-height:1}
+.stat .l{color:var(--muted);font-size:.84rem;margin-top:4px}
+.stat.hero{grid-row:span 3;display:flex;flex-direction:column;justify-content:space-between;padding:16px;
+  background:linear-gradient(160deg,var(--panel2),var(--panel))}
+.stat.hero .n{font-size:4.2rem}
+.health{height:10px;border-radius:6px;background:var(--bg);overflow:hidden;display:flex;margin-top:14px}
+.health i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.stat.red .n{color:var(--red)} .stat.amber .n{color:var(--amber)} .stat.green .n{color:var(--green)}
+.stat.red.live{border-color:var(--red);animation:tileBlink 1s steps(2,jump-none) infinite}
+@keyframes tileBlink{50%{background:rgba(255,77,94,.22)}}
+
+/* Item rows */
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:4px 1fr auto;gap:0 12px;align-items:center;width:100%;text-align:left;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-s);padding:12px 14px 12px 0;overflow:hidden}
+.item .edge{align-self:stretch;margin:-12px 0;background:var(--green)}
+.item.low .edge{background:var(--amber)}
+.item.out .edge{background:var(--red)}
+.item.out,.item.low.crit{border-color:rgba(255,77,94,.7);animation:rowBlink 1s steps(2,jump-none) infinite}
+@keyframes rowBlink{50%{background:#4A1A2B;border-color:var(--red)}}
+.item .nm{font-weight:600;font-size:.98rem;line-height:1.25}
+.item .sub{color:var(--muted);font-size:.8rem;margin-top:3px}
+.item .qty{text-align:right}
+.item .qty b{font-family:var(--f-num);font-size:1.5rem;font-weight:700;display:block;line-height:1}
+.item .qty small{color:var(--muted);font-size:.74rem}
+.item.out .qty b{color:var(--red)} .item.low .qty b{color:var(--amber)}
+.bar{grid-column:2/4;height:5px;background:var(--bg);border-radius:4px;margin-top:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green);border-radius:4px}
+.item.low .bar i{background:var(--amber)} .item.out .bar i{background:var(--red)}
+.badge{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:6px;vertical-align:1px}
+.b-out{background:var(--red);color:#fff}.b-low{background:var(--amber);color:#3A2600}.b-ok{background:rgba(52,211,153,.18);color:var(--green)}
+
+/* Controls */
+.search{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 12px;margin-top:16px}
+.search input{flex:1;background:none;border:0;color:var(--text);font:inherit;padding:12px 0;outline:none}
+.search svg{width:18px;height:18px;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:7px 14px;font-size:.86rem;color:var(--muted)}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text);font-weight:600}
+select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:inherit;font-size:.88rem}
+
+/* Category bars */
+.cat{display:grid;grid-template-columns:110px 1fr 46px;gap:10px;align-items:center;font-size:.86rem;margin:8px 0}
+.cat .track{height:12px;border-radius:6px;background:var(--bg2);display:flex;overflow:hidden}
+.cat .track i{height:100%}
+.cat .v{text-align:right;font-family:var(--f-num);font-size:1rem;color:var(--muted)}
+
+/* Transactions */
+.tx{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(40,70,111,.55)}
+.tx:last-child{border-bottom:0}
+.tx .d{font-family:var(--f-num);text-align:center;width:44px;line-height:1}
+.tx .d b{display:block;font-size:1.35rem}.tx .d small{color:var(--muted);font-size:.72rem}
+.tx .w{min-width:0}.tx .w div{font-weight:600;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx .w small{color:var(--muted);font-size:.78rem}
+.tx .q{font-family:var(--f-num);font-size:1.2rem;font-weight:700;text-align:right}
+.q.in{color:var(--green)}.q.out{color:var(--red)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-s);padding:4px 14px}
+
+/* Monthly */
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-s);padding:14px}
+.chart svg{width:100%;height:auto;display:block}
+.tbl-wrap{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:var(--radius-s)}
+table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:460px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid rgba(40,70,111,.55)}
+th{color:var(--muted);font-weight:500;background:var(--panel2)}
+th:first-child,td:first-child,td:last-child,th:last-child{text-align:left}
+td{font-variant-numeric:tabular-nums}
+
+/* Empty / error */
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:.92rem;border:1px dashed var(--line);border-radius:var(--radius-s)}
+.err{display:none;margin-top:14px;padding:12px 14px;border-radius:var(--radius-s);background:rgba(245,178,62,.12);border:1px solid rgba(245,178,62,.5);color:#FBE3B4;font-size:.88rem}
+.err.show{display:block}
+
+/* Bottom nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(18,38,68,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{background:none;border:0;padding:10px 0 9px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.74rem;color:var(--muted);position:relative}
+.tab svg{width:22px;height:22px}
+.tab.on{color:var(--text)}
+.tab.on::before{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+.tab .dot{position:absolute;top:6px;left:calc(50% + 8px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;
+  font-size:.68rem;font-weight:700;display:none;align-items:center;justify-content:center;animation:tileBlink 1s steps(2,jump-none) infinite}
+.tab .dot.show{display:flex}
+
+/* Detail sheet */
+.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(5,12,24,.6);display:none}
+.sheet-bg.show{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:720px;margin:0 auto;max-height:86vh;overflow-y:auto;
+  background:var(--bg2);border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;
+  padding:8px 18px calc(24px + env(safe-area-inset-bottom,0px));transform:translateY(105%);visibility:hidden;transition:transform .28s ease,visibility 0s .28s}
+.sheet.show{transform:none;visibility:visible;transition:transform .28s ease}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 14px}
+.sheet h3{font-family:var(--f-num);font-size:1.5rem;margin:0;line-height:1.1}
+.sheet .code{color:var(--muted);font-size:.84rem;margin-top:4px}
+.big{display:flex;align-items:baseline;gap:8px;margin:16px 0 4px}
+.big b{font-family:var(--f-num);font-size:3rem;line-height:1}
+.spec{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-s);overflow:hidden;margin-top:14px}
+.spec div{background:var(--panel);padding:9px 12px}
+.spec small{display:block;color:var(--muted);font-size:.74rem}
+.spec span{font-size:.92rem;font-weight:500}
+.close{position:absolute;right:14px;top:14px}
+
+footer.note{color:var(--muted);font-size:.76rem;text-align:center;margin-top:30px;line-height:1.5}
+
+@media (min-width:600px){.stats{grid-template-columns:1.4fr 1fr 1fr}.stat.hero{grid-row:span 2}}
+@media (prefers-reduced-motion:reduce){
+  .alarm.show,.stat.red.live,.item.out,.item.low.crit,.tab .dot{animation:none}
+  .alarm.show{background:#E0243B}.item.out{background:#3F1726}
+  .alarm .siren{animation:none}.sheet{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <img src="icons/icon-192.png" alt="DXN">
+    <div>
+      <h1>Inventori Packing</h1>
+      <small>DXN DC Sendayan · <span id="syncTxt">Memuatkan…</span></small>
+    </div>
+    <div class="sp"></div>
+    <button class="icon-btn" id="soundBtn" aria-label="Bunyi amaran" title="Bunyi amaran">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path id="snd" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+    </button>
+    <button class="icon-btn" id="refreshBtn" aria-label="Muat semula" title="Muat semula">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <button class="alarm" id="alarm" aria-live="assertive">
+    <div class="alarm-in">
+      <div class="siren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
+      <div><b id="alarmTitle">Stok kritikal</b><span id="alarmSub">Ketik untuk lihat senarai</span></div>
+    </div>
+    <div class="ticker" id="alarmTicker"></div>
+  </button>
+  <div class="ok-band" id="okBand">Semua item berada di atas paras minimum. Tiada tindakan diperlukan.</div>
+  <div class="err" id="errBox"></div>
+
+  <!-- ============ RINGKASAN ============ -->
+  <section class="view active" id="v-home">
+    <div class="stats">
+      <div class="stat hero">
+        <div>
+          <div class="n" id="sTotal">–</div>
+          <div class="l">Jumlah item berdaftar</div>
+        </div>
+        <div>
+          <div class="health" id="healthBar"></div>
+          <div class="legend"><span><i style="background:var(--green)"></i>OK</span><span><i style="background:var(--amber)"></i>Kurang</span><span><i style="background:var(--red)"></i>Habis</span></div>
+        </div>
+      </div>
+      <button class="stat red" id="tOut" data-go="out"><div class="n" id="sOut">–</div><div class="l">Habis stok</div></button>
+      <button class="stat amber" data-go="low"><div class="n" id="sLow">–</div><div class="l">Kurang stok (paras pesanan semula)</div></button>
+      <button class="stat green" data-go="ok"><div class="n" id="sOk">–</div><div class="l">Stok mencukupi</div></button>
+    </div>
+
+    <h2>Perlu tindakan <span class="count" id="critCount"></span></h2>
+    <div class="list" id="critList"></div>
+
+    <h2>Status mengikut kategori</h2>
+    <div id="catBars"></div>
+
+    <h2>Pergerakan terkini</h2>
+    <div class="card" id="recentTx"></div>
+  </section>
+
+  <!-- ============ STOK ============ -->
+  <section class="view" id="v-stock">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Cari nama item, kod atau lokasi" autocomplete="off">
+    </div>
+    <div class="chips" id="statusChips">
+      <button class="chip on" data-f="all">Semua</button>
+      <button class="chip" data-f="out">Habis stok</button>
+      <button class="chip" data-f="low">Kurang stok</button>
+      <button class="chip" data-f="ok">Mencukupi</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+      <select id="catSel" aria-label="Kategori"><option value="">Semua kategori</option></select>
+      <select id="sortSel" aria-label="Susunan">
+        <option value="risk">Susun: paling kritikal</option>
+        <option value="name">Susun: nama A–Z</option>
+        <option value="code">Susun: kod item</option>
+      </select>
+    </div>
+    <p class="meta" id="stockMeta"></p>
+    <div class="list" id="stockList" style="margin-top:10px"></div>
+  </section>
+
+  <!-- ============ TRANSAKSI ============ -->
+  <section class="view" id="v-tx">
+    <div style="display:flex;gap:8px;align-items:center;margin-top:16px;flex-wrap:wrap">
+      <select id="txMonth" aria-label="Bulan"></select>
+      <select id="txType" aria-label="Jenis">
+        <option value="">Masuk & keluar</option><option value="in">Masuk sahaja</option><option value="out">Keluar sahaja</option>
+      </select>
+    </div>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat green"><div class="n" id="txIn">0</div><div class="l">Jumlah masuk</div></div>
+      <div class="stat red"><div class="n" id="txOut">0</div><div class="l">Jumlah keluar</div></div>
+      <div class="stat"><div class="n" id="txCnt">0</div><div class="l">Bil. transaksi</div></div>
+    </div>
+    <h2>Rekod transaksi</h2>
+    <div class="card" id="txList"></div>
+  </section>
+
+  <!-- ============ BULANAN ============ -->
+  <section class="view" id="v-month">
+    <h2>Pergerakan bulanan 2026</h2>
+    <div class="chart" id="monthChart"></div>
+    <div class="tbl-wrap"><table id="monthTbl"></table></div>
+  </section>
+
+  <footer class="note">Data dibaca terus dari Google Sheet <i>DXN PACKING INVENTORY 2026</i> dan dikemas kini automatik setiap 60 saat.<br>Paparan untuk Admin &amp; Pengurusan Atasan — semakan sahaja.</footer>
+</main>
+
+<nav class="tabs">
+  <div class="tabs-in">
+    <button class="tab on" data-v="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ringkasan<span class="dot" id="navDot"></span></button>
+    <button class="tab" data-v="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>Stok</button>
+    <button class="tab" data-v="tx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg>Transaksi</button>
+    <button class="tab" data-v="month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17V11M13 17V7M18 17v-4"/></svg>Bulanan</button>
+  </div>
+</nav>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="dName">
+  <div class="grab"></div>
+  <button class="icon-btn close" id="sheetClose" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div id="sheetBody"></div>
+</div>
+
+<script>
+/* ===================== KONFIGURASI ===================== */
+const CONFIG = {
+  SHEET_ID: '1ZoW2fC4aaHwro_FbleaHdprGf8W4upHORb1lFt26Ps8',
+  TAB_ITEMS: 'ITEM MASTER',        RANGE_ITEMS: 'A2:Q200',
+  TAB_TX:    'TRANSACTIONS 2026',  RANGE_TX:    'A6:K305',
+  TAB_MONTH: 'MONTHLY SUMMARY',    RANGE_MONTH: 'A4:F15',
+  REFRESH_MS: 60000
+};
+const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+const BM = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'];
+
+/* ===================== STATE ===================== */
+let ITEMS = [], TX = [], MONTHLY = [];
+let filt = {status:'all', cat:'', q:'', sort:'risk'};
+let soundOn = false, lastCritKey = '';
+try { soundOn = localStorage.getItem('dxnInvSound') === '1'; } catch(e){}
+
+/* ===================== UTIL ===================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => { if (v === null || v === undefined || v === '') return null;
+  const n = typeof v === 'number' ? v : parseFloat(String(v).replace(/,/g,'')); return isNaN(n) ? null : n; };
+const fmt = n => n === null || n === undefined ? '–' : Number(n).toLocaleString('en-MY',{maximumFractionDigits:2});
+const cellV = c => c ? c.v : null;
+const cellT = c => c ? (c.f != null ? String(c.f) : (c.v == null ? '' : String(c.v))) : '';
+function parseGDate(c){
+  if (!c || c.v == null) return null;
+  const m = /Date\((\d+),(\d+),(\d+)/.exec(String(c.v));
+  if (m) return new Date(+m[1], +m[2], +m[3]);
+  const d = new Date(c.f || c.v); return isNaN(d) ? null : d;
+}
+
+async function fetchSheet(tab, range){
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&headers=0`
+            + `&sheet=${encodeURIComponent(tab)}&range=${range}&_=${Date.now()}`;
+  const r = await fetch(url, {cache:'no-store'});
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const t = await r.text();
+  const s = t.indexOf('{'), e = t.lastIndexOf('}');
+  if (s < 0) throw new Error('Akses ditolak — pastikan Sheet dikongsi "Anyone with the link: Viewer".');
+  const j = JSON.parse(t.slice(s, e + 1));
+  if (j.status === 'error') throw new Error((j.errors && j.errors[0] && j.errors[0].detailed_message) || 'Ralat Sheet');
+  return (j.table && j.table.rows) ? j.table.rows.map(r => r.c || []) : [];
+}
+
+/* ===================== STATUS LOGIK ===================== */
+/* Habis  : baki <= 0 ATAU status Sheet = OUT OF STOCK
+   Kurang : baki <= MIN STOCK / REORDER LEVEL ATAU status Sheet = REORDER / LOW
+   OK     : selain di atas */
+function classify(bal, min, sheetStatus){
+  const s = (sheetStatus || '').toUpperCase();
+  if ((bal !== null && bal <= 0) || s.includes('OUT')) return 'out';
+  if ((min !== null && min > 0 && bal !== null && bal <= min) || s.includes('REORDER') || s.includes('LOW') || s.includes('KURANG')) return 'low';
+  if (bal === null) return 'out';
+  return 'ok';
+}
+const RANK = {out:0, low:1, ok:2};
+const LABEL = {out:'Habis stok', low:'Kurang stok', ok:'Mencukupi'};
+
+/* ===================== LOAD ===================== */
+async function load(){
+  const btn = $('#refreshBtn'); btn.classList.add('spin');
+  try{
+    const [it, tx, mo] = await Promise.all([
+      fetchSheet(CONFIG.TAB_ITEMS, CONFIG.RANGE_ITEMS),
+      fetchSheet(CONFIG.TAB_TX, CONFIG.RANGE_TX).catch(() => []),
+      fetchSheet(CONFIG.TAB_MONTH, CONFIG.RANGE_MONTH).catch(() => [])
+    ]);
+    ITEMS = it.map(c => {
+      const name = cellT(c[2]).trim();
+      if (!name || name.toUpperCase() === 'ITEM NAME') return null;
+      const bal = num(cellV(c[14])), min = num(cellV(c[12]));
+      return { code:cellT(c[0]).trim(), cat:cellT(c[1]).trim() || 'LAIN-LAIN', name,
+        usage:cellT(c[3]), material:cellT(c[4]), size:cellT(c[5]), thick:cellT(c[6]), colour:cellT(c[7]),
+        conv:cellT(c[8]), uom:cellT(c[9]), supplier:cellT(c[10]), loc:cellT(c[11]),
+        min, open:num(cellV(c[13])), bal, sheetStatus:cellT(c[15]), remarks:cellT(c[16]),
+        status: classify(bal, min, cellT(c[15])) };
+    }).filter(Boolean);
+
+    TX = tx.map(c => {
+      const item = cellT(c[3]).trim(); const qi = num(cellV(c[5])), qo = num(cellV(c[6]));
+      if (!item && qi === null && qo === null) return null;
+      return { date:parseGDate(c[0]), dateTxt:cellT(c[0]), ref:cellT(c[1]), code:cellT(c[2]), item,
+        purpose:cellT(c[4]), qin:qi || 0, qout:qo || 0, uom:cellT(c[7]), run:num(cellV(c[8])),
+        by:cellT(c[9]), remarks:cellT(c[10]) };
+    }).filter(Boolean).sort((a,b) => (b.date||0) - (a.date||0));
+
+    MONTHLY = mo.map(c => {
+      const m = cellT(c[0]).trim().toUpperCase(); if (!MONTHS.includes(m)) return null;
+      return { m, tin:num(cellV(c[1]))||0, tout:num(cellV(c[2]))||0, net:num(cellV(c[3]))||0, cnt:num(cellV(c[4]))||0, st:cellT(c[5]) };
+    }).filter(Boolean);
+
+    try { localStorage.setItem('dxnInvCache', JSON.stringify({ITEMS, TX:TX.map(t=>({...t,date:t.date?t.date.getTime():null})), MONTHLY, at:Date.now()})); } catch(e){}
+    $('#errBox').classList.remove('show');
+    $('#syncTxt').textContent = 'Kemas kini ' + new Date().toLocaleTimeString('ms-MY',{hour:'2-digit',minute:'2-digit'});
+    renderAll();
+  } catch(err){
+    const box = $('#errBox');
+    box.innerHTML = '<b>Data langsung tidak dapat dimuatkan.</b> ' + esc(err.message) +
+      (ITEMS.length ? ' Paparan menunjukkan data terakhir yang disimpan.' : ' Semak sambungan internet, kemudian ketik butang muat semula.');
+    box.classList.add('show');
+    if (!ITEMS.length) restoreCache();
+  } finally { btn.classList.remove('spin'); }
+}
+function restoreCache(){
+  try{
+    const c = JSON.parse(localStorage.getItem('dxnInvCache') || 'null'); if (!c) return;
+    ITEMS = c.ITEMS; MONTHLY = c.MONTHLY; TX = c.TX.map(t => ({...t, date:t.date ? new Date(t.date) : null}));
+    $('#syncTxt').textContent = 'Luar talian · ' + new Date(c.at).toLocaleString('ms-MY',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    renderAll();
+  }catch(e){}
+}
+
+/* ===================== RENDER ===================== */
+function renderAll(){ renderAlarm(); renderHome(); renderStock(); fillMonthSel(); renderTx(); renderMonthly(); }
+
+function renderAlarm(){
+  const out = ITEMS.filter(i => i.status === 'out'), low = ITEMS.filter(i => i.status === 'low');
+  const n = out.length + low.length;
+  const a = $('#alarm');
+  if (n > 0){
+    a.classList.add('show'); $('#okBand').classList.remove('show');
+    $('#alarmTitle').textContent = `${n} item stok kritikal`;
+    $('#alarmSub').textContent = `${out.length} habis stok · ${low.length} kurang stok — ketik untuk lihat`;
+    $('#alarmTicker').textContent = [...out, ...low].map(i => `${i.name} (${fmt(i.bal ?? 0)} ${i.uom||''})`).join('   •   ');
+    const d = $('#navDot'); d.textContent = n > 99 ? '99+' : n; d.classList.add('show');
+    $('#tOut').classList.toggle('live', out.length > 0);
+    const key = [...out, ...low].map(i => i.code + i.status).join('|');
+    if (key !== lastCritKey){ beep(); if (navigator.vibrate) navigator.vibrate([200,100,200]); lastCritKey = key; }
+    document.title = `(${n}) ⚠ Inventori Packing – DXN`;
+  } else {
+    a.classList.remove('show'); $('#navDot').classList.remove('show'); $('#tOut').classList.remove('live');
+    $('#okBand').classList.toggle('show', ITEMS.length > 0); lastCritKey = '';
+    document.title = 'Inventori Packing – DXN DC Sendayan';
+  }
+}
+
+function itemRow(i, compact){
+  const ratio = i.min && i.min > 0 ? Math.min(1, (i.bal||0) / (i.min * 2)) : (i.status === 'ok' ? 1 : 0);
+  const crit = i.status === 'low' ? ' crit' : '';
+  const badge = `<span class="badge b-${i.status}">${LABEL[i.status]}</span>`;
+  return `<button class="item ${i.status}${crit}" data-code="${esc(i.code)}">
+    <span class="edge"></span>
+    <div><div class="nm">${esc(i.name)}${compact ? '' : badge}</div>
+      <div class="sub">${esc(i.code)}${i.loc ? ' · ' + esc(i.loc) : ''}${i.min ? ' · Min ' + fmt(i.min) : ''}</div></div>
+    <div class="qty"><b>${fmt(i.bal ?? 0)}</b><small>${esc(i.uom || '')}</small></div>
+    <div class="bar"><i style="width:${Math.round(ratio*100)}%"></i></div>
+  </button>`;
+}
+
+function renderHome(){
+  const c = {out:0, low:0, ok:0}; ITEMS.forEach(i => c[i.status]++);
+  const t = ITEMS.length;
+  $('#sTotal').textContent = t; $('#sOut').textContent = c.out; $('#sLow').textContent = c.low; $('#sOk').textContent = c.ok;
+  $('#healthBar').innerHTML = t ? `<i style="width:${c.ok/t*100}%;background:var(--green)"></i><i style="width:${c.low/t*100}%;background:var(--amber)"></i><i style="width:${c.out/t*100}%;background:var(--red)"></i>` : '';
+
+  const crit = ITEMS.filter(i => i.status !== 'ok').sort((a,b) => RANK[a.status]-RANK[b.status] || (a.bal||0)-(b.bal||0));
+  $('#critCount').textContent = crit.length ? `(${crit.length})` : '';
+  $('#critList').innerHTML = crit.length
+    ? crit.slice(0, 8).map(i => itemRow(i, false)).join('') + (crit.length > 8 ? `<button class="chip" style="align-self:flex-start" data-go="crit">Lihat kesemua ${crit.length} item</button>` : '')
+    : '<div class="empty">Tiada item di bawah paras minimum.</div>';
+
+  const cats = {}; ITEMS.forEach(i => { (cats[i.cat] ||= {out:0,low:0,ok:0,t:0}); cats[i.cat][i.status]++; cats[i.cat].t++; });
+  $('#catBars').innerHTML = Object.keys(cats).sort().map(k => { const x = cats[k];
+    return `<div class="cat"><span>${esc(k)}</span><div class="track"><i style="width:${x.ok/x.t*100}%;background:var(--green)"></i><i style="width:${x.low/x.t*100}%;background:var(--amber)"></i><i style="width:${x.out/x.t*100}%;background:var(--red)"></i></div><span class="v">${x.t}</span></div>`;
+  }).join('') || '<div class="empty">Tiada item dalam ITEM MASTER.</div>';
+
+  $('#recentTx').innerHTML = TX.length ? TX.slice(0,5).map(txRow).join('') : '<div class="empty" style="border:0">Belum ada transaksi direkodkan dalam TRANSACTIONS 2026.</div>';
+}
+
+function renderStock(){
+  const sel = $('#catSel'), cur = sel.value;
+  const cats = [...new Set(ITEMS.map(i => i.cat))].sort();
+  sel.innerHTML = '<option value="">Semua kategori</option>' + cats.map(c => `<option${c===cur?' selected':''}>${esc(c)}</option>`).join('');
+  const q = filt.q.toLowerCase();
+  let list = ITEMS.filter(i =>
+    (filt.status === 'all' || (filt.status === 'crit' ? i.status !== 'ok' : i.status === filt.status)) &&
+    (!filt.cat || i.cat === filt.cat) &&
+    (!q || [i.name, i.code, i.loc, i.supplier, i.cat].join(' ').toLowerCase().includes(q)));
+  list.sort(filt.sort === 'name' ? (a,b) => a.name.localeCompare(b.name)
+          : filt.sort === 'code' ? (a,b) => a.code.localeCompare(b.code, undefined, {numeric:true})
+          : (a,b) => RANK[a.status]-RANK[b.status] || (a.bal||0)-(b.bal||0));
+  $('#stockMeta').textContent = `${list.length} daripada ${ITEMS.length} item dipaparkan`;
+  $('#stockList').innerHTML = list.length ? list.map(i => itemRow(i, false)).join('') : '<div class="empty">Tiada item sepadan dengan carian atau penapis ini.</div>';
+}
+
+function txRow(t){
+  const d = t.date; const isIn = t.qin > 0;
+  const q = isIn ? `+${fmt(t.qin)}` : `−${fmt(t.qout)}`;
+  return `<div class="tx"><div class="d"><b>${d ? d.getDate() : '–'}</b><small>${d ? BM[d.getMonth()] : ''}</small></div>
+    <div class="w"><div>${esc(t.item)}</div><small>${esc(t.purpose || '—')}${t.ref ? ' · ' + esc(t.ref) : ''}${t.by ? ' · ' + esc(t.by) : ''}</small></div>
+    <div class="q ${isIn ? 'in' : 'out'}">${q}<small style="display:block;font-size:.7rem;color:var(--muted);font-weight:500">${esc(t.uom||'')}</small></div></div>`;
+}
+
+function fillMonthSel(){
+  const s = $('#txMonth'); if (s.options.length) return;
+  s.innerHTML = '<option value="">Semua bulan</option>' + BM.map((m,i) => `<option value="${i}">${MONTHS[i].charAt(0)+MONTHS[i].slice(1).toLowerCase()}</option>`).join('');
+  s.value = String(new Date().getMonth());
+}
+function renderTx(){
+  const m = $('#txMonth').value, ty = $('#txType').value;
+  const list = TX.filter(t => (m === '' || (t.date && t.date.getMonth() === +m)) && (!ty || (ty === 'in' ? t.qin > 0 : t.qout > 0)));
+  $('#txIn').textContent = fmt(list.reduce((s,t) => s + t.qin, 0));
+  $('#txOut').textContent = fmt(list.reduce((s,t) => s + t.qout, 0));
+  $('#txCnt').textContent = list.length;
+  $('#txList').innerHTML = list.length ? list.map(txRow).join('') : '<div class="empty" style="border:0">Tiada transaksi bagi tempoh ini.</div>';
+}
+
+function renderMonthly(){
+  const data = MONTHS.map((m,i) => MONTHLY.find(x => x.m === m) || {m, tin:0, tout:0, net:0, cnt:0, st:'NO MOVEMENT'});
+  const max = Math.max(1, ...data.map(d => Math.max(d.tin, d.tout)));
+  const W = 640, H = 220, pl = 8, pb = 26, bw = (W - pl*2) / 12;
+  let bars = '';
+  data.forEach((d,i) => {
+    const x = pl + i*bw, h1 = (d.tin/max)*(H-pb-14), h2 = (d.tout/max)*(H-pb-14);
+    bars += `<rect x="${x+bw*.16}" y="${H-pb-h1}" width="${bw*.32}" height="${Math.max(h1,1)}" rx="3" fill="var(--green)"><title>${BM[i]} masuk: ${fmt(d.tin)}</title></rect>
+             <rect x="${x+bw*.52}" y="${H-pb-h2}" width="${bw*.32}" height="${Math.max(h2,1)}" rx="3" fill="var(--red)"><title>${BM[i]} keluar: ${fmt(d.tout)}</title></rect>
+             <text x="${x+bw/2}" y="${H-8}" text-anchor="middle" fill="var(--muted)" font-size="12" font-family="Barlow,sans-serif">${BM[i]}</text>`;
+  });
+  $('#monthChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Carta masuk dan keluar bulanan">
+    <line x1="0" x2="${W}" y1="${H-pb}" y2="${H-pb}" stroke="var(--line)"/>${bars}</svg>
+    <div class="legend"><span><i style="background:var(--green)"></i>Jumlah masuk</span><span><i style="background:var(--red)"></i>Jumlah keluar</span></div>`;
+  $('#monthTbl').innerHTML = '<thead><tr><th>Bulan</th><th>Masuk</th><th>Keluar</th><th>Bersih</th><th>Bil.</th><th>Status</th></tr></thead><tbody>' +
+    data.map((d,i) => `<tr><td>${BM[i]}</td><td>${fmt(d.tin)}</td><td>${fmt(d.tout)}</td><td style="color:${d.net<0?'var(--red)':d.net>0?'var(--green)':'inherit'}">${fmt(d.net)}</td><td>${fmt(d.cnt)}</td><td style="color:var(--muted)">${esc(d.st)}</td></tr>`).join('') + '</tbody>';
+}
+
+/* ===================== DETAIL ===================== */
+function openItem(code){
+  const i = ITEMS.find(x => x.code === code); if (!i) return;
+  const hist = TX.filter(t => t.code === i.code || t.item === i.name).slice(0, 15);
+  const sp = (l,v) => `<div><small>${l}</small><span>${esc(v) || '—'}</span></div>`;
+  $('#sheetBody').innerHTML = `
+    <h3 id="dName">${esc(i.name)}</h3>
+    <div class="code">${esc(i.code)} · ${esc(i.cat)} <span class="badge b-${i.status}">${LABEL[i.status]}</span></div>
+    <div class="big"><b style="color:${i.status==='out'?'var(--red)':i.status==='low'?'var(--amber)':'var(--green)'}">${fmt(i.bal ?? 0)}</b><span style="color:var(--muted)">${esc(i.uom||'')} baki semasa</span></div>
+    <div class="meta">Paras minimum: ${i.min ? fmt(i.min) + ' ' + esc(i.uom||'') : 'belum ditetapkan'} · Baki pembukaan: ${fmt(i.open ?? 0)}</div>
+    <div class="spec">${sp('Lokasi simpanan', i.loc)}${sp('Pembekal', i.supplier)}${sp('Kegunaan', i.usage)}${sp('Bahan / jenis', i.material)}
+      ${sp('Saiz / kapasiti', i.size)}${sp('Ketebalan', i.thick)}${sp('Warna', i.colour)}${sp('Pembungkusan', i.conv)}</div>
+    ${i.remarks ? `<p class="meta" style="margin-top:12px">Catatan: ${esc(i.remarks)}</p>` : ''}
+    <h2>Sejarah pergerakan</h2>
+    <div class="card">${hist.length ? hist.map(txRow).join('') : '<div class="empty" style="border:0">Belum ada pergerakan bagi item ini.</div>'}</div>`;
+  $('#sheetBg').classList.add('show'); $('#sheet').classList.add('show');
+}
+function closeSheet(){ $('#sheetBg').classList.remove('show'); $('#sheet').classList.remove('show'); }
+
+/* ===================== SOUND ===================== */
+function setSoundUI(){ const b = $('#soundBtn'); b.classList.toggle('on', soundOn); $('#snd').style.display = soundOn ? '' : 'none'; }
+function beep(){
+  if (!soundOn) return;
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, .35, .7].forEach(t => { const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'square'; o.frequency.value = 880; g.gain.setValueAtTime(.12, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + t + .25);
+      o.connect(g).connect(ctx.destination); o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + .26); });
+  }catch(e){}
+}
+
+/* ===================== NAV & EVENTS ===================== */
+function go(v){
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'v-' + v));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.v === v));
+  window.scrollTo({top:0});
+}
+function goStock(status){
+  filt.status = status;
+  document.querySelectorAll('#statusChips .chip').forEach(c => c.classList.toggle('on', c.dataset.f === (status === 'crit' ? 'all' : status)));
+  renderStock(); go('stock');
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => go(t.dataset.v));
+$('#alarm').onclick = () => goStock('crit');
+document.addEventListener('click', e => {
+  const it = e.target.closest('.item'); if (it) return openItem(it.dataset.code);
+  const g = e.target.closest('[data-go]'); if (g) goStock(g.dataset.go);
+});
+document.querySelectorAll('#statusChips .chip').forEach(c => c.onclick = () => {
+  filt.status = c.dataset.f; document.querySelectorAll('#statusChips .chip').forEach(x => x.classList.toggle('on', x === c)); renderStock(); });
+$('#catSel').onchange = e => { filt.cat = e.target.value; renderStock(); };
+$('#sortSel').onchange = e => { filt.sort = e.target.value; renderStock(); };
+$('#q').oninput = e => { filt.q = e.target.value; renderStock(); };
+$('#txMonth').onchange = renderTx; $('#txType').onchange = renderTx;
+$('#refreshBtn').onclick = load;
+$('#soundBtn').onclick = () => { soundOn = !soundOn; try{localStorage.setItem('dxnInvSound', soundOn?'1':'0')}catch(e){} setSoundUI(); if (soundOn){ lastCritKey=''; renderAlarm(); } };
+$('#sheetBg').onclick = closeSheet; $('#sheetClose').onclick = closeSheet;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+
+setSoundUI(); restoreCache(); load();
+setInterval(() => { if (!document.hidden) load(); }, CONFIG.REFRESH_MS);
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
